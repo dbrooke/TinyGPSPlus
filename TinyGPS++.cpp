@@ -127,7 +127,7 @@ int32_t TinyGPSPlus::parseDecimal(const char *term)
 
 // static
 // Parse degrees in that funny NMEA format DDMM.MMMM
-void TinyGPSPlus::parseDegrees(const char *term, int16_t &degrees, uint32_t &billionths)
+void TinyGPSPlus::parseDegrees(const char *term, int16_t &degrees, int32_t &billionths)
 {
   uint32_t leftOfDecimal = (uint32_t)atol(term);
   uint16_t minutes = (uint16_t)(leftOfDecimal % 100);
@@ -238,7 +238,10 @@ bool TinyGPSPlus::endOfTermHandler()
     case COMBINE(GPS_SENTENCE_GPRMC, 4): // N/S
     case COMBINE(GPS_SENTENCE_GPGGA, 3):
       if (term[0] == 'S')
+      {
         location.iNewLatDegrees = -location.iNewLatDegrees;
+        location.iNewLatBillionths = -location.iNewLatBillionths;
+      }
       break;
     case COMBINE(GPS_SENTENCE_GPRMC, 5): // Longitude
     case COMBINE(GPS_SENTENCE_GPGGA, 4):
@@ -247,7 +250,10 @@ bool TinyGPSPlus::endOfTermHandler()
     case COMBINE(GPS_SENTENCE_GPRMC, 6): // E/W
     case COMBINE(GPS_SENTENCE_GPGGA, 5):
       if (term[0] == 'W')
+      {
         location.iNewLngDegrees = -location.iNewLngDegrees;
+        location.iNewLngBillionths = -location.iNewLngBillionths;
+      }
       break;
     case COMBINE(GPS_SENTENCE_GPRMC, 7): // Speed (GPRMC)
       speed.set(term);
@@ -336,37 +342,33 @@ const char *TinyGPSPlus::cardinal(double course)
 void TinyGPSLocation::commit()
 {
    iLatDegrees = iNewLatDegrees;
-   uLatBillionths = uNewLatBillionths;
+   iLatBillionths = iNewLatBillionths;
    iLngDegrees = iNewLngDegrees;
-   uLngBillionths = uNewLngBillionths;
+   iLngBillionths = iNewLngBillionths;
    lastCommitTime = millis();
    valid = updated = true;
 }
 
 void TinyGPSLocation::setLatitude(const char *term)
 {
-   TinyGPSPlus::parseDegrees(term, iNewLatDegrees, uNewLatBillionths);
+   TinyGPSPlus::parseDegrees(term, iNewLatDegrees, iNewLatBillionths);
 }
 
 void TinyGPSLocation::setLongitude(const char *term)
 {
-   TinyGPSPlus::parseDegrees(term, iNewLngDegrees, uNewLngBillionths);
+   TinyGPSPlus::parseDegrees(term, iNewLngDegrees, iNewLngBillionths);
 }
 
 double TinyGPSLocation::lat()
 {
    updated = false;
-   return iLatDegrees > 0 ? 
-      (iLatDegrees + uLatBillionths / 1000000000.0) :
-      (iLatDegrees - uLatBillionths / 1000000000.0);
+   return iLatDegrees + iLatBillionths / 1000000000.0;
 }
 
 double TinyGPSLocation::lng()
 {
    updated = false;
-   return iLngDegrees > 0 ? 
-      (iLngDegrees + uLngBillionths / 1000000000.0) :
-      (iLngDegrees - uLngBillionths / 1000000000.0);
+   return iLngDegrees + iLngBillionths / 1000000000.0;
 }
 
 void TinyGPSDate::commit()

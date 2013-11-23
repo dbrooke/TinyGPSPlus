@@ -50,19 +50,19 @@ public:
 
    int16_t rawLatDegrees()     { updated = false; return iLatDegrees; }
    int16_t rawLngDegrees()     { updated = false; return iLngDegrees; }
-   uint32_t rawLatBillionths() { updated = false; return uLatBillionths; }
-   uint32_t rawLngBillionths() { updated = false; return uLngBillionths; }
+   uint32_t rawLatBillionths() { updated = false; return abs(iLatBillionths); }
+   uint32_t rawLngBillionths() { updated = false; return abs(iLngBillionths); }
    double lat();
    double lng();
 
    TinyGPSLocation() : valid(false), updated(false), 
-      iLatDegrees(0), iLngDegrees(0), uLatBillionths(0), uLngBillionths(0)
+      iLatDegrees(0), iLngDegrees(0), iLatBillionths(0), iLngBillionths(0)
    {}
 
 private:
    bool valid, updated;
    int16_t iLatDegrees, iNewLatDegrees, iLngDegrees, iNewLngDegrees;
-   uint32_t uLatBillionths, uNewLatBillionths, uLngBillionths, uNewLngBillionths;
+   int32_t iLatBillionths, iNewLatBillionths, iLngBillionths, iNewLngBillionths;
    uint32_t lastCommitTime;
    void commit();
    void setLatitude(const char *term);
@@ -229,7 +229,7 @@ public:
   static const char *cardinal(double course);
 
   static int32_t parseDecimal(const char *term);
-  static void parseDegrees(const char *term, int16_t &degrees, uint32_t &billionths);
+  static void parseDegrees(const char *term, int16_t &degrees, int32_t &billionths);
 
   uint32_t charsProcessed()   const { return encodedCharCount; }
   uint32_t sentencesWithFix() const { return sentencesWithFixCount; }
